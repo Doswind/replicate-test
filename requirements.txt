@@ -1,1 +1,8 @@
+#transformers[torch]
+#sentencepiece transformers[sentencepiece]
+diffusers
+accelerate
+protobuf
+sentencepiece
+numpy
 gradio

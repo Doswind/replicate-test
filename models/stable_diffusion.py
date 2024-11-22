@@ -4,27 +4,31 @@ from diffusers import StableDiffusion3Pipeline, DPMSolverMultistepScheduler
 from diffusers import StableDiffusion3Img2ImgPipeline
 from diffusers.utils import load_image
 
-from models.config import MODEL_PATH, APP_ROOT
+from .config import MODEL_PATH, APP_ROOT
 
+model_group = "stabilityai"
+#model_path = "D:\\huggingface\\models\\stabilityai"
 
-def text2image(model, prompt, negative_prompt, seed, randomize_seed, width, height, guidance_scale, num_inference_steps):
-    model_id = os.path.join(MODEL_PATH, model)
-    pipe = StableDiffusion3Pipeline.from_pretrained(model_id, local_files_only=True, text_encoder_3=None, tokenizer_3=None, torch_dtype=torch.float16)
-    pipe.scheduler = DPMSolverMultistepScheduler.from_config(pipe.scheduler.config)
-    pipe = pipe.to("cuda") if torch.cuda.is_available() else pipe
+def text2image(model, prompt, parameters):
+    model_id = os.path.join(MODEL_PATH, model_group,  model)
+
+    pipe = StableDiffusion3Pipeline.from_pretrained(model_id, local_files_only=True, text_encoder_3=None, tokenizer_3=None,  torch_dtype=torch.float16)
+    pipe = pipe.to("cuda")
     
-    generator = torch.Generator('cuda').manual_seed(seed) if torch.cuda.is_available() else torch.Generator('cpu').manual_seed(seed)
+    #prompt = "A capybara holding a sign that reads Hello World"
+    #prompt = "Ultraman in action, dynamic battle scene, fighting giant kaiju monster, cosmic superhero, silver armored suit, glowing color timer chest light, heroic pose, energy beam attack, urban destruction background, dramatic lighting, epic scale, motion blur, detailed special effects, cinematic composition, high-quality render, dynamic angle, dramatic perspective, sparks and explosions, detailed textures, 8k resolution, hyper-detailed, masterpiece"
+    image = pipe(
+        prompt,
+        width=parameters['width'],
+        height=parameters['height'],
+        seed=parameters['seed'],
+        randomize_seed=parameters['randomize_seed'],
+        guidance_scale=parameters['guidance_scale'],
+        num_inference_steps=parameters['num_inference_steps']
+    ).images[0]
 
-    image = pipe(prompt,
-        width=width,
-        height=height,
-        guidance_scale=guidance_scale,
-        num_inference_steps=num_inference_steps,
-        generator=generator,
-        negative_prompt=negative_prompt,
-        randomize_seed=randomize_seed).images[0]
-    image.save('output.png')
     return image
+
 
 def image2image(model):
     model_id = os.path.join(MODEL_PATH, model)
@@ -48,19 +52,17 @@ def list_modesl():
         print(f"\n模型路径: {repo.repo_path}")
 
 
-def run(model, prompt, negative_prompt, seed, randomize_seed, width, height, guidance_scale, num_inference_steps):
-    text2image(model, prompt, negative_prompt, seed, randomize_seed, width, height, guidance_scale, num_inference_steps)
 
 if __name__ == '__main__':
     model = "stabilityai/stable-diffusion-3-medium-diffusers"
-    width = 1024
-    height = 1024
-    guidance_scale = 5
-    num_inference_steps = 28
-    seed = 0 # or None for random seed
     prompt = ""
-    negative_prompt = ""
-    randomize_seed = 0
+    parameters = {
+        "width": 1024,
+        "height": 1024,
+        "guidance_scale": 5,
+        "num_inference_steps": 28,
+        "seed": 0 ,
+        "randomize_seed": 0
+    }
 
-    run(model, prompt, model, prompt, negative_prompt, seed, randomize_seed, width, height, 
-        guidance_scale, num_inference_steps, seed, randomize_seed, width, height, guidance_scale, num_inference_steps)
+    text2image(model, prompt, parameters)

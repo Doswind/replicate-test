@@ -13,19 +13,18 @@ def process_gfpgan(image, version, rescaling_factor):
     # 目前只是返回输入图像作为示例
     return image, image, image
 
-def run_stable_diffusion(model, prompt, negative_prompt, seed, randomize_seed, width, height, guidance_scale, num_inference_steps):
-    # 这里放置 Stable Diffusion 的处理逻辑
-    # 目前只是返回一个占位符图像作为示例
-    import time 
-    time.sleep(5)
-    image_path = "/Users/fengligang/Pictures/OIP-C.jpeg"
-    try:
-        img = Image.open(image_path)
-        return img
-    except Exception as e:
-        print(f"Error loading image: {e}")
-        return None
-    return "http://gips2.baidu.com/it/u=1674525583,3037683813&fm=3028&app=3028&f=JPEG&fmt=auto?w=1024&h=1024"
+def run_stable_diffusion(model, prompt, seed, randomize_seed, width, height, guidance_scale, num_inference_steps):
+
+    parameters = {"width": int(width), 
+                  "height": int(height), 
+                  "seed": int(seed), 
+                  "randomize_seed": bool(randomize_seed),
+                  "randomize_seed": int(randomize_seed), 
+                  "guidance_scale": float(guidance_scale), 
+                  "num_inference_steps": int(num_inference_steps)}   
+
+    return sd.text2image(model, prompt, parameters)
+
 
 
 def generate_image():
@@ -100,8 +99,8 @@ def table_image_generate():
         with gr.TabItem("Stable Diffusion"):
             model_selection = gr.Dropdown(
                 label="Select your model", 
-                choices=["stable-diffusion-3.5-medium", "stable-diffusion-3.5-large-turbo"],
-                value="stable-diffusion-3.5-medium"
+                choices=["stable-diffusion-3-medium-diffusers", "stable-diffusion-3.5-large-turbo"],
+                value="stable-diffusion-3-medium-diffusers"
             )
             prompt = gr.Textbox(label="Enter your prompt", placeholder="目前对英文的支持较好，请使用英文")
             output_image_sd = gr.Image(label="Output")
@@ -111,19 +110,24 @@ def table_image_generate():
                 randomize_seed = gr.Checkbox(label="Randomize seed", value=True)
                 with gr.Row():
                     with gr.Column():
-                        width = gr.Slider(label="Width", minimum=256, maximum=2048, step=1, value=1024)
+                        width = gr.Slider(label="Width", minimum=512, maximum=1440, step=16, value=1024)
                     with gr.Column():
-                        height = gr.Slider(label="Height", minimum=256, maximum=2048, step=1, value=1024)
+                        height = gr.Slider(label="Height", minimum=512, maximum=1440, step=16, value=1024)
                 with gr.Row():
                     with gr.Column():
-                        guidance_scale = gr.Slider(label="Guidance scale", minimum=1.0, maximum=20.0, step=0.1, value=5.0)
+                        guidance_scale = gr.Slider(label="Guidance scale", minimum=0, maximum=7.5, step=0.1, value=4.5)
                     with gr.Column():
-                        num_inference_steps = gr.Slider(label="Number of inference steps", minimum=1, maximum=50, step=1, value=28)
+                        num_inference_steps = gr.Slider(label="Number of inference steps", minimum=1, maximum=50, step=1, value=40)
             examples = gr.Examples(examples=["A beautiful sunset over a mountain range", "A futuristic cityscape at night"], inputs=prompt)
+
+            parameters = {"width": width, "height": height, "seed": seed, "randomize_seed": randomize_seed, 
+                          "guidance_scale": guidance_scale, "num_inference_steps": num_inference_steps}   
 
             run_button.click(run_stable_diffusion, inputs=[model_selection, prompt, seed, randomize_seed, width, height, guidance_scale, num_inference_steps], outputs=output_image_sd)
 
         with gr.TabItem("FLUX.1-dev"):
+            pass
+            return ;
             with gr.Column():
                 # 文本输入和运行按钮行
                 with gr.Row():
