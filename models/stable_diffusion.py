@@ -6,8 +6,31 @@ from diffusers.utils import load_image
 
 from .config import MODEL_PATH, APP_ROOT
 
+import gradio as gr
+
 model_group = "stabilityai"
 #model_path = "D:\\huggingface\\models\\stabilityai"
+
+display_css = """
+.submit-button {
+    background: linear-gradient(90deg, rgba(255,165,0,1) 0%, rgba(255,200,100,1) 100%);
+    color: #D35400;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 12px;
+    font-weight: bold;
+}
+.markdown-text {
+    color: #666666;
+    font-size: 0.9em;
+}
+"""
 
 def text2image(model, prompt, parameters):
     model_id = os.path.join(MODEL_PATH, model_group,  model)
@@ -42,6 +65,7 @@ def image2image(model):
     image = pipe(prompt, image=init_image).images[0]
     image.save('new_output.png')
 
+
 def list_modesl():
     from huggingface_hub import scan_cache_dir
     cache_info = scan_cache_dir()
@@ -52,7 +76,48 @@ def list_modesl():
         print(f"\n模型路径: {repo.repo_path}")
 
 
+def run(model, prompt, seed, randomize_seed, width, height, guidance_scale, num_inference_steps):
 
+    parameters = {"width": int(width), 
+                  "height": int(height), 
+                  "seed": int(seed), 
+                  "randomize_seed": bool(randomize_seed),
+                  "randomize_seed": int(randomize_seed), 
+                  "guidance_scale": float(guidance_scale), 
+                  "num_inference_steps": int(num_inference_steps)}   
+
+    return text2image(model, prompt, parameters)
+
+
+def interface():
+    with gr.Blocks(css=display_css) as demo:
+        with gr.Column():
+            model = gr.Dropdown(
+                label="Select your model", 
+                choices=["stable-diffusion-3-medium-diffusers", "stable-diffusion-3.5-large-turbo"],
+                value="stable-diffusion-3-medium-diffusers"
+            )
+            prompt = gr.Textbox(label="Enter your prompt", placeholder="目前对英文的支持较好，请使用英文")
+            output_image_sd = gr.Image(label="Output")
+            run_button = gr.Button(value="Run", elem_classes="submit-button")
+            with gr.Accordion("Advanced Settings", open=False):
+                seed = gr.Slider(label="Seed", minimum=0, maximum=1000000, step=1, value=0)
+                randomize_seed = gr.Checkbox(label="Randomize seed", value=True)
+                with gr.Row():
+                    with gr.Column():
+                        width = gr.Slider(label="Width", minimum=512, maximum=1440, step=16, value=1024)
+                    with gr.Column():
+                        height = gr.Slider(label="Height", minimum=512, maximum=1440, step=16, value=1024)
+                with gr.Row():
+                    with gr.Column():
+                        guidance_scale = gr.Slider(label="Guidance scale", minimum=0, maximum=7.5, step=0.1, value=4.5)
+                    with gr.Column():
+                        num_inference_steps = gr.Slider(label="Number of inference steps", minimum=1, maximum=50, step=1, value=40)
+            gr.Examples(examples=["A beautiful sunset over a mountain range", "A futuristic cityscape at night"], inputs=prompt) 
+
+            run_button.click(run, inputs=[model, prompt, seed, randomize_seed, width, height, guidance_scale, num_inference_steps], outputs=output_image_sd)
+
+    
 if __name__ == '__main__':
     model = "stabilityai/stable-diffusion-3-medium-diffusers"
     prompt = ""
@@ -65,4 +130,5 @@ if __name__ == '__main__':
         "randomize_seed": 0
     }
 
-    text2image(model, prompt, parameters)
+    demo = interface()
+    demo.launch()
