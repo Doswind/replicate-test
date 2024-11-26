@@ -8,7 +8,7 @@ from .config import MODEL_PATH, APP_ROOT
 
 import gradio as gr
 
-model_group = "stabilityai"
+model_group = "BAAI"
 #model_path = "D:\\huggingface\\models\\stabilityai"
 
 display_css = """
@@ -34,7 +34,7 @@ display_css = """
 
 def text2image(model, prompt, parameters):
     model_id = os.path.join(MODEL_PATH, model_group,  model)
-
+    print(model_id)
     pipe = StableDiffusion3Pipeline.from_pretrained(model_id, local_files_only=True, text_encoder_3=None, tokenizer_3=None,  torch_dtype=torch.float16)
     pipe = pipe.to("cuda")
     

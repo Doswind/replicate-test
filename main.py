@@ -89,6 +89,7 @@ def table_image_generate():
             stable_diffusion.interface()
              
         with gr.TabItem("OmniGen-V1"):
+            print('OmniGen-V1  .......')
             omnigen.interface()
         
         with gr.TabItem("FLUX.1-dev"):

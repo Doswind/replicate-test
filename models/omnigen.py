@@ -5,6 +5,7 @@ from OmniGen import OmniGenPipeline
 
 from .config import MODEL_PATH, APP_ROOT
 
+model = "OmniGen-V1"
 model_group = "shitao"
 
 display_css = """
@@ -28,14 +29,23 @@ display_css = """
 }
 """
 
-def process_image(model, prompt, img1, img2, img3, parameters):
-
-    model_id = os.path.join(MODEL_PATH, model_group,  model)
-    print(type(img1))
-    print(img1)
-    return 
-
+def process_image(prompt, img1, img2, img3, parameters):
+    model_id = os.path.join(MODEL_PATH, model_group, model)
+    print(model_id)
     pipe = OmniGenPipeline.from_pretrained(model_id)
+
+    # Text to Image
+    print("pipe .....")
+    images = pipe(
+        prompt="A curly-haired man in a red shirt is drinking tea.", 
+        height=1024, 
+        width=1024, 
+        guidance_scale=2.5,
+        seed=0,
+    )
+    print('save ....')
+    #images[0].save("example_t2i.png")  # save output PIL Image
+    return images[0]
 
     # Text to Image
     images = pipe(
@@ -63,7 +73,7 @@ def process_image(model, prompt, img1, img2, img3, parameters):
     return images
 
 
-def run(model, prompt, img1, img2, img3,
+def run(prompt, img1, img2, img3,
         height, width, guidance_scale,
         img_guidance_scale, inference_steps,
         seed, randomize,
@@ -73,14 +83,17 @@ def run(model, prompt, img1, img2, img3,
     
     parameters = {"width": int(width), 
                   "height": int(height), 
+                  "guidance_scale": guidance_scale,
+                  "img_guidance_scale": img_guidance_scale,
+                  "inference_steps": inference_steps,
                   "seed": int(seed), 
                   "randomize": bool(randomize),
+                  "max_input_image_size": int(max_input_image_size),
                   "offload_model": offload_model,
-                  "use_input_image_size": use_input_image_size,
-                  "img_guidance_scale": float(img_guidance_scale), 
-                  "max_input_image_size": int(max_input_image_size)}   
+                  "use_input_image_size": use_input_image_size}   
+    
 
-    return process_image(model, prompt, img1, img2, img3, parameters)
+    return process_image(prompt, img1, img2, img3, parameters)
                       
 
 def interface():
@@ -99,9 +112,7 @@ def interface():
                         type="filepath",
                         #elem_classes="upload-button"
                     )
-                    print("herereree")
-                    print(img1)
-                    print(type(img1))
+                    
                 with gr.Column(elem_classes="image-container"):
                     img2 = gr.Image(
                         label="<img><|image_2|></img>",
@@ -204,7 +215,6 @@ def interface():
                     #elem_classes="checkbox-item"
                 )
                     
-            
             generate_btn = gr.Button("Generate Image", elem_classes="submit-button")
             
             output_image = gr.Image(
@@ -217,6 +227,7 @@ def interface():
             generate_btn.click(
                 fn=run,
                 inputs=[
+                    prompt,
                     img1, img2, img3,
                     height, width, guidance_scale,
                     img_guidance_scale, inference_steps,
