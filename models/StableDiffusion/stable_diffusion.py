@@ -94,8 +94,8 @@ def interface():
         with gr.Column():
             model = gr.Dropdown(
                 label="Select your model", 
-                choices=["stable-diffusion-3-medium-diffusers", "stable-diffusion-3.5-large-turbo"],
-                value="stable-diffusion-3-medium-diffusers"
+                choices=["stable-diffusion-3.5-medium-diffusers", "stable-diffusion-3.5-large-turbo"],
+                value="stable-diffusion-3.5-medium-diffusers"
             )
             prompt = gr.Textbox(label="Enter your prompt", placeholder="目前对英文的支持较好，请使用英文")
             output_image_sd = gr.Image(label="Output")
